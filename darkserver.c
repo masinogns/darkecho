@@ -1,4 +1,6 @@
-/*DARK SERVER TEST FUNCTION
+/*
+*
+*DARK SERVER TEST FUNCTION
 
 *LAST MODIFIED : 2015/ 09 / 05
 *
@@ -24,13 +26,14 @@ void FileSaveHead();
 void FileSaveTail();
 void FileRead();
 void AcntSave(char *Acnt); //Id, Pw save to text file
-
+void SearchPosition();
 /*
 ** :: Grobal Variable Part
 */
 int People = 0; //the number of people
 int serv_sock, clnt_sock; //need for create socket. it will save socket descript
 int fd; //need for create file. it will save file descript(fd)
+FILE *fp;
 
 /*
 ** :: Main Function Part
@@ -70,38 +73,42 @@ clnt_sock=accept(serv_sock, (struct sockaddr*)&clnt_adr, &clnt_adr_sz);
 //CONNECTED.....
 printf(".....Connected with Client......\n");
 FileOpen();
-/*Acnt UserRead;
-ResMsg Res;
-Res.ControlNum=2;read(clnt_sock, &UserRead, sizeof(UserRead));
 
-printf("%s\n%s\n%d\n",UserRead.Id,UserRead.Pw,UserRead.ControlNum);
-
-write(clnt_sock, &Res, sizeof(Res));*/
 ProSignUp();
+
+FileRead();
+
 }//Main() close
 
 void ProSignUp()
 {
 Acnt UserRead;
 ResMsg Res;
+Saving Save[People];
+
+memset(&Res.RtnMsg, 0, sizeof(Res.RtnMsg));
 Res.ControlNum=1;
 read(clnt_sock, &UserRead, sizeof(UserRead));
 
-printf("%s\n%s\n%d\n",UserRead.Id,UserRead.Pw,UserRead.ControlNum);
+printf("%s\n%s\nControlNum: %d\n",UserRead.Id,UserRead.Pw,UserRead.ControlNum);
 
 //this part is not working
-sprintf(Res.RtnMsg,"Id:%s Pw:%s\n",UserRead.Id,UserRead.Pw);
+sprintf(Res.RtnMsg,"\nId:%s Pw:%s\n",UserRead.Id,UserRead.Pw);
 Res.RtnLen=strlen(Res.RtnMsg);
+
 //AcntSave(&Res);
-printf("This is RtnMsg : %s",Res.RtnMsg);
+printf("This is RtnMsg : %s\n",Res.RtnMsg);
+printf("Res.RtnLen :%d\n",Res.RtnLen);
 write(clnt_sock, &Res, sizeof(Res));
+
 
 FileSaveHead();
 write(fd, &Res.RtnMsg, sizeof(Res.RtnMsg));
 FileSaveTail();
 
-People++;//the number of people +1
-printf("the number of people : %d\n",People);
+//People++;//the number of people +1
+//printf("the number of people : %d\n",People);
+
 }
 
 /*
@@ -118,7 +125,7 @@ printf("....FILE OPEN FAIL.....\n");
 void FileSaveHead()
 {
 if((fd=open("./test.txt",O_WRONLY | O_APPEND))!=-1)
-printf("Saving....\n");
+printf("File Saving....\n");
 else
 {
 printf("DO NOT SAVE\n");
@@ -148,5 +155,18 @@ exit(1);
 
 void FileRead()
 {
+if(fp=fopen("./test.txt","r"))
+{
+while(!feof(fp))
+{
+
+fscanf(fp, "%s", Res.RtnMsg);
+printf("%s",Res.RtnMsg);
+fputc('\n',stdout);
 
 }
+
+}
+//fclose(fp);
+}
+

@@ -8,26 +8,31 @@
 #ifndef __DATA_H__
 #define __DATA_H__
 
-#define ID_LEN 30 //아이디 길이
-#define PW_LEN 30 //비밀번호 길이
+#define IdLen 20 //아이디 길이
+#define PwLen 20 //비밀번호 길이
 
 #define MAX 100 //계정 최대 개수 설정
 
 typedef struct
 {
 short ControlNum;
-char Id[ID_LEN];
-char Pw[PW_LEN];
+char Id[IdLen];
+char Pw[PwLen];
 }Acnt;
 //account;
 
 typedef struct
 {
 short ControlNum;
-short RtnLen;
-char RtnMsg[255];
+int RtnLen;
+char RtnMsg[50];
 }ResMsg;
 //response message;
+
+typedef struct
+{
+char *Account;
+}Saving;
 
 Acnt root = {0, "root", "root"};
 Acnt User[MAX];

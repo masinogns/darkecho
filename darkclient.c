@@ -58,20 +58,6 @@ else
 printf("....Connected with Server......\n");
 //connected.... down page..... ok? 
 
-/*Acnt UserInfo;
-UserInfo.ControlNum=1;
-
-ResMsg Res;
-
-printf("Id :");
-scanf("%s",UserInfo.Id);
-printf("Pw :");
-scanf("%s",UserInfo.Pw);
-
-write(sock, &UserInfo, sizeof(UserInfo));
-read(sock, &Res, sizeof(Res));
-printf("%d",Res.ControlNum);*/
-
 
 ShowSignUp();
 
@@ -92,6 +78,7 @@ scanf("%s",UserInfo.Pw);
 write(sock, &UserInfo, sizeof(UserInfo));
 read(sock, &Res, sizeof(Res));
 
-printf("%d\n",Res.ControlNum);
+printf("ControlNum : %d\n",Res.ControlNum);
 printf("This is RtnMsg: %s\n",Res.RtnMsg);
+printf("Res.RtnLen : %d\n", Res.RtnLen);
 }
