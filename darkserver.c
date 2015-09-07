@@ -76,7 +76,6 @@ printf(".....Connected with Client......\n");
 FileOpen();
 ProMenu();
 //ProSignUp();
-FileRead();
 
 }//Main() close
 
@@ -244,6 +243,7 @@ memset(&UserRead.Pw, 0, sizeof(UserRead.Pw));
 memset(&Res.RtnMsg, 0, sizeof(Res.RtnMsg));
 
 read(clnt_sock, &UserRead, sizeof(UserRead));
+printf("Id:%s \nPw:%s \n",UserRead.Id, UserRead.Pw);
 
 Found=ProFindId(UserRead.Id);
 
@@ -254,7 +254,7 @@ if(Found>=0) //Found value >= 0, Id is existence
 	//Login Successful!
 	Collected=1;
 	sprintf(Res.RtnMsg,"Login Successful!\nYour Id is %s\n",User[Found].Id);
-	printf("%s",Res.RtnMsg);
+	printf("%s\n",Res.RtnMsg);
 	Res.RtnLen=strlen(Res.RtnMsg);
 	Res.ControlNum=0;//login success control num;
 
@@ -263,7 +263,7 @@ if(Found>=0) //Found value >= 0, Id is existence
 	else
 	{
 	sprintf(Res.RtnMsg, "Password is wrong \nTry Again \n");
-	printf("%s",Res.RtnMsg);
+	printf("%s\n",Res.RtnMsg);
 	Res.RtnLen=strlen(Res.RtnMsg);
 	Res.ControlNum=1;//Password wrong control num;
 
@@ -273,7 +273,7 @@ if(Found>=0) //Found value >= 0, Id is existence
 if(Found<0) //Found value < 0, Id is not existence
 {
 	sprintf(Res.RtnMsg, "Id is not existence \nTry Again or Sign Up \n");
-	printf("%s",Res.RtnMsg);
+	printf("%s\n",Res.RtnMsg);
 	Res.RtnLen=strlen(Res.RtnMsg);
 	Res.ControlNum=2;//Id wrong control num;
 
