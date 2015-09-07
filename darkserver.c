@@ -15,24 +15,25 @@
 ** :: Process of Function Part
 */
 void ProMenu();   //Process of Menu System
-void ProSignUp(); //Process of Sign Up
+void ProSignUp(char *YorN); //Process of Sign Up
 int ProFindId(char *Id); //Process of Find Id and return found = position
-
+void ProLogIn();
+void ProExit();
 /*
 ** :: File Process of Function Part
 */
 void FileOpen();
 void FileSaveHead();
 void FileSaveTail();
-void FileRead();
-void AcntSave(char *Acnt); //Id, Pw save to text file
-void SearchPosition();
+int FileRead();
+//void AcntSave(char *Acnt); //Id, Pw save to text file
+
 /*
 ** :: Grobal Variable Part
 */
-int People = 0; //the number of people
 int serv_sock, clnt_sock; //need for create socket. it will save socket descript
 int fd; //need for create file. it will save file descript(fd)
+//int People;
 FILE *fp;
 
 /*
@@ -73,41 +74,68 @@ clnt_sock=accept(serv_sock, (struct sockaddr*)&clnt_adr, &clnt_adr_sz);
 //CONNECTED.....
 printf(".....Connected with Client......\n");
 FileOpen();
-
-ProSignUp();
-
+ProMenu();
+//ProSignUp();
 FileRead();
 
 }//Main() close
 
-void ProSignUp()
+void ProMenu()
+{
+int SelectNum;
+char Yesno[2]="n";
+
+read(clnt_sock, &SelectNum, sizeof(SelectNum));
+//read(clnt_sock, Yesno, sizeof(Yesno));
+printf("Select Number : %d\n",SelectNum);
+
+	//do
+	//{
+do
+{
+switch(SelectNum)
+{
+case 1: ProSignUp(Yesno); break;
+case 2: ProLogIn(); break;
+case 3: ProExit(); break;
+}
+}while(SelectNum<1||SelectNum>3);
+	//}while(SelectNum!=3);
+
+}
+
+void ProSignUp(char *YorN)
 {
 Acnt UserRead;
+Acnt User[MAX];
 ResMsg Res;
-Saving Save[People];
+static int People=0;
 
+
+memset(&UserRead.Id, 0, sizeof(UserRead.Id));
+memset(&UserRead.Pw, 0, sizeof(UserRead.Pw));
 memset(&Res.RtnMsg, 0, sizeof(Res.RtnMsg));
+
 Res.ControlNum=1;
+
 read(clnt_sock, &UserRead, sizeof(UserRead));
 
-printf("%s\n%s\nControlNum: %d\n",UserRead.Id,UserRead.Pw,UserRead.ControlNum);
+printf("%s\n%s\n",UserRead.Id,UserRead.Pw);
+//printf("ControlNum: %d\n",UserRead.ControlNum);
+
+sprintf(User[People].Id, "\nID:%s", UserRead.Id);
+sprintf(User[People].Pw, "\nPW:%s", UserRead.Pw);
 
 //this part is not working
-sprintf(Res.RtnMsg,"\nId:%s Pw:%s\n",UserRead.Id,UserRead.Pw);
+sprintf(Res.RtnMsg,"\nSign Up is Successful.\nThank you. Mr.%s\n",UserRead.Id);
 Res.RtnLen=strlen(Res.RtnMsg);
 
-//AcntSave(&Res);
-printf("This is RtnMsg : %s\n",Res.RtnMsg);
-printf("Res.RtnLen :%d\n",Res.RtnLen);
 write(clnt_sock, &Res, sizeof(Res));
 
-
 FileSaveHead();
-write(fd, &Res.RtnMsg, sizeof(Res.RtnMsg));
+write(fd, User[People].Id, sizeof(User[People].Id));
+write(fd, User[People].Pw, sizeof(User[People].Pw));
 FileSaveTail();
-
-//People++;//the number of people +1
-//printf("the number of people : %d\n",People);
 
 }
 
@@ -125,48 +153,130 @@ printf("....FILE OPEN FAIL.....\n");
 void FileSaveHead()
 {
 if((fd=open("./test.txt",O_WRONLY | O_APPEND))!=-1)
-printf("File Saving....\n");
+printf("Your Id, Pw Saving is doing....\n");
 else
 {
 printf("DO NOT SAVE\n");
 exit(1);
 }
 }
+
 void FileSaveTail()
 {
-close(fd);
-}
-
-void AcntSave(char *Acnt)
-{
-if((fd=open("./test.txt",O_WRONLY | O_APPEND))!=-1)
-{
-printf("ACNT Saving....\n");
-write(fd, &Acnt, sizeof(Acnt));
+ResMsg Res;
+memset(&Res, 0, sizeof(Res));
 
 close(fd);
-}
-else
-{
-printf("DO NOT SAVE\n");
-exit(1);
-}
+sprintf(Res.RtnMsg,"Id, Pw save is Successful!!\n");
+printf("%s",Res.RtnMsg);
+write(clnt_sock, Res.RtnMsg, sizeof(Res.RtnMsg));
 }
 
-void FileRead()
+int FileRead()
 {
+int People=0;
+
 if(fp=fopen("./test.txt","r"))
 {
 while(!feof(fp))
 {
 
-fscanf(fp, "%s", Res.RtnMsg);
-printf("%s",Res.RtnMsg);
+fscanf(fp, "%s", User[People].Id);
+fscanf(fp, "%s", User[People].Pw);
+printf("%s\n",User[People].Id);
+printf("%s\n",User[People].Pw);
+
+if(strncmp(User[People].Id,"ID:",3)==0)
+{
+People++;
+printf("\nPeople number : %d\n",People);
+}
 fputc('\n',stdout);
-
 }
 
 }
+return People;
 //fclose(fp);
 }
 
+/*
+** :: if SelectNum is 3, this func will work
+*/
+void ProExit()
+{
+close(clnt_sock);
+
+exit(1);
+}
+
+
+/*
+** :: Find Id in txt file. this used to function Signup and Login
+*/
+int ProFindId(char *Id)
+{
+int People=FileRead(); //the number of people saved test file
+int Position=0; //array Position start 0~~
+int Found=-1;   //return value start -1~~
+
+while((Position<People)&&Found<0)
+{
+if(strcmp(User[Position].Id,Id)==0)
+Found=Position;
+else
+Position++;
+//if Position over number of people. return Found value -1
+}
+return Found;
+}
+
+void ProLogIn()
+{
+int Found;
+int Collected=0; //if collected value became 1, login is successful
+
+Acnt UserRead;
+Acnt User[MAX];
+ResMsg Res;
+
+memset(&UserRead.Id, 0, sizeof(UserRead.Id));
+memset(&UserRead.Pw, 0, sizeof(UserRead.Pw));
+memset(&Res.RtnMsg, 0, sizeof(Res.RtnMsg));
+
+read(clnt_sock, &UserRead, sizeof(UserRead));
+
+Found=ProFindId(UserRead.Id);
+
+if(Found>=0) //Found value >= 0, Id is existence
+{
+	if(strcmp(User[Found].Pw, UserRead.Pw)==0)//Password conform
+	{
+	//Login Successful!
+	Collected=1;
+	sprintf(Res.RtnMsg,"Login Successful!\nYour Id is %s\n",User[Found].Id);
+	printf("%s",Res.RtnMsg);
+	Res.RtnLen=strlen(Res.RtnMsg);
+	Res.ControlNum=0;//login success control num;
+
+	write(clnt_sock, &Res, sizeof(Res));
+	}
+	else
+	{
+	sprintf(Res.RtnMsg, "Password is wrong \nTry Again \n");
+	printf("%s",Res.RtnMsg);
+	Res.RtnLen=strlen(Res.RtnMsg);
+	Res.ControlNum=1;//Password wrong control num;
+
+	write(clnt_sock, &Res, sizeof(Res));
+	}
+}
+if(Found<0) //Found value < 0, Id is not existence
+{
+	sprintf(Res.RtnMsg, "Id is not existence \nTry Again or Sign Up \n");
+	printf("%s",Res.RtnMsg);
+	Res.RtnLen=strlen(Res.RtnMsg);
+	Res.ControlNum=2;//Id wrong control num;
+
+	write(clnt_sock, &Res, sizeof(Res));
+}
+}//ProLogin close()
